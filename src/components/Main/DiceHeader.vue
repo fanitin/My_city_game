@@ -1,40 +1,67 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-const dice1 = ref('⚀')
-const dice2 = ref('⚀')
+const emit = defineEmits<{
+  (e: 'log', message: string): void,
+  (e: 'dices', dice1: number, dice2: number) : void
+}>()
+
+const currentRound = ref(0)
+const currentPhase = ref<'Preparation' | 'Building' | 'Scoring' | 'Bonus'>('Preparation')
+
+const diceFaces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅']
+const dice1Face = ref('⚀')
+const dice2Face = ref('⚀')
+const dice1Value = ref(1)
+const dice2Value = ref(1)
 const rolling = ref(false)
 
 const rollDice = () => {
   if (rolling.value) return
-
   rolling.value = true
-  const diceFaces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅']
 
   const interval = setInterval(() => {
-    dice1.value = diceFaces[Math.floor(Math.random() * 6)]
-    dice2.value = diceFaces[Math.floor(Math.random() * 6)]
+    const i1 = Math.floor(Math.random() * 6)
+    const i2 = Math.floor(Math.random() * 6)
+    dice1Face.value = diceFaces[i1]
+    dice2Face.value = diceFaces[i2]
+    dice1Value.value = i1 + 1
+    dice2Value.value = i2 + 1
   }, 150)
 
   setTimeout(() => {
     clearInterval(interval)
-    dice1.value = diceFaces[Math.floor(Math.random() * 6)]
-    dice2.value = diceFaces[Math.floor(Math.random() * 6)]
+    const i1 = Math.floor(Math.random() * 6)
+    const i2 = Math.floor(Math.random() * 6)
+    dice1Face.value = diceFaces[i1]
+    dice2Face.value = diceFaces[i2]
+    dice1Value.value = i1 + 1
+    dice2Value.value = i2 + 1
     rolling.value = false
+
+    emit('log', `You've rolled ${dice1Value.value} and ${dice2Value.value}`)
+    emit('dices', dice1Value.value, dice1Value.value)
+
+    if (currentRound.value === 0) {
+      currentPhase.value = 'Preparation'
+    } else {
+      currentPhase.value = 'Building'
+    }
   }, 3000)
 }
 </script>
+
 
 <template>
   <div class="flex items-center justify-between w-full max-w-4xl mx-auto gap-6">
     <div class="flex flex-col items-start text-left">
       <div class="text-sm text-slate-600">
         <span class="font-semibold text-slate-800">Round: </span>
-        <span class="ml-1">1 / 9</span>
+        <span class="ml-1">{{ currentRound }}/9</span>
       </div>
       <div class="text-sm text-slate-600">
         <span class="font-semibold text-slate-800">Phase: </span>
-        <span class="ml-1">IDK TESTUJE</span>
+        <span class="ml-1">{{ currentPhase }}</span>
       </div>
     </div>
 
@@ -48,7 +75,7 @@ const rollDice = () => {
             rolling ? 'animate-spin-slow' : '',
           ]"
         >
-          {{ dice1 }}
+          {{ dice1Face }}
         </div>
         <div
           :class="[
@@ -56,7 +83,7 @@ const rollDice = () => {
             rolling ? 'animate-spin-slow' : '',
           ]"
         >
-          {{ dice2 }}
+          {{ dice2Face }}
         </div>
       </div>
     </div>
