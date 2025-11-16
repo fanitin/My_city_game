@@ -10,28 +10,47 @@ import { ref } from 'vue'
 const dice1Value = ref<number>()
 const dice2Value = ref<number>()
 const selectedBuilding = ref<string | null>(null)
-const currentRound = ref(0)
-const currentPhase = ref<'Preparation' | 'Building' | 'Scoring' | 'Bonus'>('Preparation')
+const currentRound = ref<number>()
+const currentPhase = ref<'Preparation' | 'Building' | 'Scoring' | 'Bonus'>()
 const log = ref<string[]>([])
 
 const handleLog = (message: string) => {
   log.value.push(message)
 }
 
-const handleDices = (dice1: number, dice2: number) => {
+const handleMainInfo = (
+  dice1: number,
+  dice2: number,
+  round: number,
+  phase: 'Preparation' | 'Building' | 'Scoring' | 'Bonus',
+) => {
   dice1Value.value = dice1
   dice2Value.value = dice2
+  currentRound.value = round
+  currentPhase.value = phase
 }
+
+const handleSelectedBuilding = (building: string) => {
+
+}
+
 </script>
 
 <template>
+  <div>
+    {{dice1Value}}
+    {{dice2Value}}
+    {{currentPhase}}
+    {{currentRound}}
+    {{selectedBuilding}}
+  </div>
   <main class="w-full h-screen overflow-hidden">
     <div class="flex flex-col h-full bg-slate-100 text-slate-800">
       <div class="flex justify-between items-center px-6 py-4 bg-slate-200 shadow flex-none">
         <div class="w-1/5"></div>
 
         <div class="flex flex-col items-center gap-3 w-3/5">
-          <DiceHeader @log="handleLog" @dices="handleDices"/>
+          <DiceHeader @log="handleLog" @mainInfo="handleMainInfo" />
         </div>
 
         <div class="w-1/5 flex justify-end items-center">
@@ -51,15 +70,20 @@ const handleDices = (dice1: number, dice2: number) => {
         </div>
 
         <div class="w-1/5 overflow-hidden mr-8 flex flex-col">
-          <Buildings class="flex-1 overflow-hidden" />
+          <Buildings
+            class="flex-1 overflow-hidden"
+            :dice1="dice1Value"
+            :dice2="dice2Value"
+            :round="currentRound"
+            :phase="currentPhase"
+            @selectBuilding="handleSelectedBuilding"
+          />
         </div>
       </div>
 
-
       <div class="flex-none px-6 pb-2 flex justify-center items-center">
-        <Logs :log="log"/>
+        <Logs :log="log" />
       </div>
     </div>
   </main>
 </template>
-

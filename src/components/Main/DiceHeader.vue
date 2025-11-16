@@ -3,7 +3,7 @@ import { ref } from 'vue'
 
 const emit = defineEmits<{
   (e: 'log', message: string): void,
-  (e: 'dices', dice1: number, dice2: number) : void
+  (e: 'mainInfo', dice1: number, dice2: number, round: number, phase: 'Preparation' | 'Building' | 'Scoring' | 'Bonus') : void
 }>()
 
 const currentRound = ref(0)
@@ -40,7 +40,7 @@ const rollDice = () => {
     rolling.value = false
 
     emit('log', `You've rolled ${dice1Value.value} and ${dice2Value.value}`)
-    emit('dices', dice1Value.value, dice1Value.value)
+    emit('mainInfo', dice1Value.value, dice2Value.value, currentRound.value, currentPhase.value)
 
     if (currentRound.value === 0) {
       currentPhase.value = 'Preparation'
