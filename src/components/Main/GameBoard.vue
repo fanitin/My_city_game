@@ -1,16 +1,26 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Home, TreePine, Waves, Building2 } from 'lucide-vue-next'
+import { Building2, Home, TreePine, Waves } from 'lucide-vue-next'
 
+const emit = defineEmits<{
+  (e: 'buildingPlaced', row: number): void
+}>()
+
+const props = defineProps<{
+  selectedBuilding: string | null
+  rows: number[]
+  round: number | undefined
+  phase: 'Preparation' | 'Building' | 'Scoring' | 'Bonus' | undefined
+}>()
 
 const dice = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅']
 const rows = ['3,4', '5,6', '7', '8,9', '10,11']
 
 const buildingTypes = [
-  { id: 'House', name: 'House (1 and 4)', color: 'bg-amber-400', icon: Home },
-  { id: 'Forest', name: 'Forest (2 and 5)', color: 'bg-green-500', icon: TreePine },
-  { id: 'Lake', name: 'Lake (3 and 6)', color: 'bg-blue-400', icon: Waves },
-  { id: 'Square', name: 'Square (same dices)', color: 'bg-purple-400', icon: Building2 },
+  { id: 'house', name: 'House (1 and 4)', color: 'bg-amber-400', icon: Home },
+  { id: 'forest', name: 'Forest (2 and 5)', color: 'bg-green-500', icon: TreePine },
+  { id: 'lake', name: 'Lake (3 and 6)', color: 'bg-blue-400', icon: Waves },
+  { id: 'square', name: 'Square (same dices)', color: 'bg-purple-400', icon: Building2 },
 ]
 
 const bonusMap: Record<string, 1 | 2 | 3> = {
@@ -43,12 +53,10 @@ const board = ref<Cell[][]>(
     dice.map((_, colIndex) => ({
       bonus: bonusMap[`${rowIndex}-${colIndex}`] || undefined,
       building: undefined,
-      bonusActive: true
-    }))
-  )
+      bonusActive: true,
+    })),
+  ),
 )
-
-
 
 const getBonusClass = (points?: number) => {
   switch (points) {
@@ -62,15 +70,29 @@ const getBonusClass = (points?: number) => {
       return 'border-slate-300'
   }
 }
-</script>
 
+const placeBuilding = (rowIndex: number, colIndex: number) => {
+  if (!isCellActive(rowIndex, colIndex)) return
+  if (!props.selectedBuilding) return
+
+  board.value[rowIndex][colIndex].building = props.selectedBuilding as 'House' | 'Forest' | 'Lake' | 'Square'
+  board.value[rowIndex][colIndex].bonusActive = false
+
+  emit('buildingPlaced', colIndex + 1)
+}
+
+const isCellActive = (rowIndex: number, colIndex: number) => {
+  if (!props.selectedBuilding) return true
+  return props.rows.includes(colIndex + 1)
+}
+</script>
 
 <template>
   <div class="bg-white rounded-xl px-16 py-8 shadow-sm flex flex-col items-center">
     <div class="flex gap-3 items-center">
       <div class="flex flex-col justify-center gap-1">
         <div
-          v-for="(r) in rows"
+          v-for="r in rows"
           :key="r"
           class="h-16 flex items-center justify-end text-sm text-slate-600 pr-1 w-10 translate-y-[3px]"
         >
@@ -94,13 +116,19 @@ const getBonusClass = (points?: number) => {
             <div
               v-for="(cell, j) in row"
               :key="`${i}-${j}`"
-              class="w-16 h-16 border-2 rounded-md bg-slate-50 flex items-center justify-center text-sm transition-all duration-300 relative"
-              :class="getBonusClass(cell.bonus)"
+              class="w-16 h-16 border-2 rounded-md flex items-center justify-center text-sm transition-all duration-300 relative"
+              :class="[
+                getBonusClass(cell.bonus),
+                isCellActive(i, j)
+                  ? 'bg-white border-2 border-indigo-400 shadow-md cursor-pointer hover:bg-indigo-50'
+                  : 'bg-slate-300 border border-slate-400 opacity-50 cursor-not-allowed',
+              ]"
+              @click="placeBuilding(i, j)"
             >
               <component
                 v-if="cell.building"
-                :is="buildingTypes.find(b => b.id === cell.building)?.icon"
-                class="w-6 h-6 text-white"
+                :is="buildingTypes.find(b => b.id === cell.building)?.icon || Home"
+                class="w-6 h-6"
               />
               <span
                 v-if="cell.bonus"
@@ -108,10 +136,6 @@ const getBonusClass = (points?: number) => {
                 :class="cell.bonusActive ? 'text-slate-400' : 'text-slate-300 line-through'"
               >
                 {{ cell.bonus }}
-              </span>
-
-              <span v-if="cell.building" class="text-sm font-bold">
-                {{ cell.building }}
               </span>
             </div>
           </template>

@@ -1,12 +1,24 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 const emit = defineEmits<{
-  (e: 'log', message: string): void,
-  (e: 'mainInfo', dice1: number, dice2: number, round: number, phase: 'Preparation' | 'Building' | 'Scoring' | 'Bonus') : void
+  (e: 'log', message: string): void
+  (
+    e: 'mainInfo',
+    dice1: number,
+    dice2: number,
+    round: number,
+    phase: 'Preparation' | 'Building' | 'Scoring' | 'Bonus',
+    buildingsNumber: number,
+  ): void
+  (e: 'phase', phase: 'Preparation' | 'Building' | 'Scoring' | 'Bonus'): void
 }>()
 
-const currentRound = ref(0)
+const props = defineProps<{
+  toBuild: number
+}>()
+
+const currentRound = ref(-1)
 const currentPhase = ref<'Preparation' | 'Building' | 'Scoring' | 'Bonus'>('Preparation')
 
 const diceFaces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅']
@@ -15,9 +27,13 @@ const dice2Face = ref('⚀')
 const dice1Value = ref(1)
 const dice2Value = ref(1)
 const rolling = ref(false)
+const toBuild = ref(0)
+const canBeClicked = ref(true)
 
 const rollDice = () => {
-  if (rolling.value) return
+  canBeClicked.value = false
+  currentRound.value++
+  if(currentRound.value > 0) currentPhase.value = 'Building'
   rolling.value = true
 
   const interval = setInterval(() => {
@@ -39,8 +55,11 @@ const rollDice = () => {
     dice2Value.value = i2 + 1
     rolling.value = false
 
+    if(currentRound.value == 3 || currentRound.value == 6 || currentRound.value == 9) toBuild.value = 3
+    else toBuild.value = 2
+
     emit('log', `You've rolled ${dice1Value.value} and ${dice2Value.value}`)
-    emit('mainInfo', dice1Value.value, dice2Value.value, currentRound.value, currentPhase.value)
+    emit('mainInfo', dice1Value.value, dice2Value.value, currentRound.value, currentPhase.value, toBuild.value)
 
     if (currentRound.value === 0) {
       currentPhase.value = 'Preparation'
@@ -49,15 +68,36 @@ const rollDice = () => {
     }
   }, 3000)
 }
-</script>
 
+watch(
+  () => props.toBuild,
+  (remain) => {
+    if(currentRound.value > 0 && currentRound.value % 3 == 0 && remain == 1){
+      currentPhase.value = 'Bonus'
+    } else if(currentRound.value > 0 && remain == 0){
+      currentPhase.value = 'Scoring'
+    }
+    if(remain == 0){
+      canBeClicked.value = true
+    }
+    emit('phase', currentPhase.value)
+  },
+)
+
+watch(
+  () => currentRound.value,
+  (round) => {
+    if(round == 9) canBeClicked.value = false
+  }
+)
+</script>
 
 <template>
   <div class="flex items-center justify-between w-full max-w-4xl mx-auto gap-6">
     <div class="flex flex-col items-start text-left">
       <div class="text-sm text-slate-600">
         <span class="font-semibold text-slate-800">Round: </span>
-        <span class="ml-1">{{ currentRound }}/9</span>
+        <span class="ml-1">{{(currentRound >= 0 ? currentRound : '0') }}/9</span>
       </div>
       <div class="text-sm text-slate-600">
         <span class="font-semibold text-slate-800">Phase: </span>
@@ -68,7 +108,7 @@ const rollDice = () => {
     <div
       class="flex items-center justify-center flex-1 transition-transform duration-300 hover:scale-105"
     >
-      <div @click="rollDice" class="flex items-center justify-center gap-8 cursor-pointer">
+      <div @click="canBeClicked ? rollDice() : null" class="flex items-center justify-center gap-8 cursor-pointer">
         <div
           :class="[
             'w-24 h-24 bg-white border-2 border-slate-300 rounded-2xl grid place-items-center text-7xl shadow-lg transition-transform duration-300',
