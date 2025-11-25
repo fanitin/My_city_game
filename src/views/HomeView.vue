@@ -302,7 +302,7 @@ const restartGame = () => {
         </div>
       </div>
 
-      <div class="flex-none px-6 pb-2 flex justify-center items-center">
+      <div class="flex-none px-4 flex justify-center items-center">
         <Logs :log="log" />
       </div>
     </div>

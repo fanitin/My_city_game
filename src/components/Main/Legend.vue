@@ -19,8 +19,8 @@
       <h4 class="font-bold mb-1">Preparation (Round 0)</h4>
       <p class="mb-3">
         Roll two dice. Place <strong>two buildings</strong> in the rows corresponding to the dice values:
-        - First building: any type, row = value of the second die.
-        - Second building: any type, row = value of the first die.
+        - First building: any type, row = value of the second dice.
+        - Second building: any type, row = value of the first dice.
         The two buildings must be different types. Squares are <strong>not placed yet</strong> in this phase.
         No points are scored during preparation.
       </p>
@@ -33,8 +33,8 @@
       <h5 class="font-bold mb-1">1. Construction Phase</h5>
       <p class="mb-3">
         Place <strong>two buildings</strong> according to the dice:
-        - Building of type Die A → row = value of Die B
-        - Building of type Die B → row = value of Die A
+        - Building of type Dice A → row = value of Dice B
+        - Building of type Dice B → row = value of Dice A
         If both dice show the same number, place the corresponding building and <strong>one Square</strong> anywhere on the map.
       </p>
 

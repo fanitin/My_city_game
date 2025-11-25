@@ -31,7 +31,7 @@ const bonusMap: Record<string, 1 | 2 | 3> = {
   '0-5': 3,
   '1-1': 1,
   '1-4': 1,
-  '2-0': 2,
+  '2-0': 3,
   '2-2': 1,
   '2-3': 1,
   '2-5': 2,
@@ -86,7 +86,11 @@ const placeBuilding = (rowIndex: number, colIndex: number) => {
   if (!isCellActive(rowIndex, colIndex)) return
   if (!props.selectedBuilding) return
 
-  board.value[rowIndex][colIndex].building = props.selectedBuilding as 'House' | 'Forest' | 'Lake' | 'Square'
+  board.value[rowIndex][colIndex].building = props.selectedBuilding as
+    | 'House'
+    | 'Forest'
+    | 'Lake'
+    | 'Square'
   board.value[rowIndex][colIndex].bonusActive = false
 
   const placedCol = colIndex + 1
@@ -170,12 +174,11 @@ const computeAllowedColumns = (): number[] => {
       offset++
     }
 
-    bestCols.forEach(c => allowed.add(c))
+    bestCols.forEach((c) => allowed.add(c))
   }
 
   return Array.from(allowed)
 }
-
 </script>
 
 <template>
@@ -211,14 +214,14 @@ const computeAllowedColumns = (): number[] => {
               :class="[
                 getBonusClass(cell.bonus),
                 isCellVisuallyActive(i, j)
-                  ? 'bg-white border-2 border-indigo-400 shadow-md cursor-pointer hover:bg-indigo-50'
+                  ? 'bg-white shadow-md cursor-pointer hover:bg-indigo-50'
                   : 'bg-slate-300 border border-slate-400 opacity-50 cursor-not-allowed',
               ]"
               @click="placeBuilding(i, j)"
             >
               <component
                 v-if="cell.building"
-                :is="buildingTypes.find(b => b.id === cell.building)?.icon || Home"
+                :is="buildingTypes.find((b) => b.id === cell.building)?.icon || Home"
                 class="w-6 h-6"
               />
               <span
