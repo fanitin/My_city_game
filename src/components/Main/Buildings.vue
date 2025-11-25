@@ -219,6 +219,12 @@ watch(
         }
       })
     }
+
+    if(props.toBuild == 0){
+      buildings.forEach((b) => {
+        b.isActive = false
+      })
+    }
   },
   { deep: true, immediate: true },
 )
