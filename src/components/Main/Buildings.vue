@@ -116,18 +116,18 @@ function clickBuilding(buildingKey: string, isBonus = false) {
     let rows: number[] = []
 
     if (buildingKey === 'house') {
-      if ([1, 4].includes(d1) && !props.usedRows.includes(props.dice1)) rows.push(d1)
-      if ([1, 4].includes(d2) && !props.usedRows.includes(props.dice2)) rows.push(d2)
+      if ([1, 4].includes(d1) && !props.usedRows.includes(props.dice2)) rows.push(d2)
+      if ([1, 4].includes(d2) && !props.usedRows.includes(props.dice1)) rows.push(d1)
     }
 
     if (buildingKey === 'forest') {
-      if ([2, 5].includes(d1) && !props.usedRows.includes(props.dice1)) rows.push(d1)
-      if ([2, 5].includes(d2) && !props.usedRows.includes(props.dice2)) rows.push(d2)
+      if ([2, 5].includes(d1) && !props.usedRows.includes(props.dice2)) rows.push(d2)
+      if ([2, 5].includes(d2) && !props.usedRows.includes(props.dice1)) rows.push(d1)
     }
 
     if (buildingKey === 'lake') {
-      if ([3, 6].includes(d1) && !props.usedRows.includes(props.dice1)) rows.push(d1)
-      if ([3, 6].includes(d2) && !props.usedRows.includes(props.dice2)) rows.push(d2)
+      if ([3, 6].includes(d1) && !props.usedRows.includes(props.dice2)) rows.push(d2)
+      if ([3, 6].includes(d2) && !props.usedRows.includes(props.dice1)) rows.push(d1)
     }
 
     selectedBuilding.rows = [...new Set(rows)]
@@ -258,6 +258,7 @@ watch(
           :class="[
             'px-4 py-1 border rounded-full text-sm font-medium shadow-sm transition-all duration-300',
             b.isActive ? b.activeColor : 'bg-slate-100 border-slate-300 text-slate-400',
+            phase == 'Bonus' ? 'cursor-pointer' : '',
             selectedBuilding.key === b.key && selectedBuilding.bonus
               ? 'ring-2 ring-offset-2 ring-indigo-400'
               : '',

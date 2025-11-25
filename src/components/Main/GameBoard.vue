@@ -4,6 +4,7 @@ import { Building2, Home, TreePine, Waves } from 'lucide-vue-next'
 
 const emit = defineEmits<{
   (e: 'buildingPlaced', row: number): void
+  (e: 'boardUpdated', board: Cell[][]): void
 }>()
 
 const props = defineProps<{
@@ -71,6 +72,16 @@ const getBonusClass = (points?: number) => {
   }
 }
 
+const getOriginalRow = () => {
+  for (const r of props.rows) {
+    const col = r - 1
+    if (freeSlotsInColumn(col) === 0) {
+      return r
+    }
+  }
+  return null
+}
+
 const placeBuilding = (rowIndex: number, colIndex: number) => {
   if (!isCellActive(rowIndex, colIndex)) return
   if (!props.selectedBuilding) return
@@ -78,13 +89,93 @@ const placeBuilding = (rowIndex: number, colIndex: number) => {
   board.value[rowIndex][colIndex].building = props.selectedBuilding as 'House' | 'Forest' | 'Lake' | 'Square'
   board.value[rowIndex][colIndex].bonusActive = false
 
-  emit('buildingPlaced', colIndex + 1)
+  const placedCol = colIndex + 1
+  const original = getOriginalRow()
+
+  let rowToReturn
+
+  if (props.rows.includes(placedCol)) {
+    rowToReturn = placedCol
+  } else {
+    rowToReturn = original ?? placedCol
+  }
+
+  emit('boardUpdated', board.value)
+  emit('buildingPlaced', rowToReturn)
 }
 
 const isCellActive = (rowIndex: number, colIndex: number) => {
+  const cell = board.value[rowIndex][colIndex]
+
+  if (cell.building) return false
+
   if (!props.selectedBuilding) return true
-  return props.rows.includes(colIndex + 1)
+  const allowedCols = computeAllowedColumns()
+  return allowedCols.includes(colIndex + 1)
 }
+
+const isCellVisuallyActive = (rowIndex: number, colIndex: number) => {
+  if (!props.selectedBuilding) return true
+
+  const allowedCols = computeAllowedColumns()
+  return allowedCols.includes(colIndex + 1)
+}
+
+const freeSlotsInColumn = (colIndex: number) => {
+  if (!board.value) return 0
+  let free = 0
+  for (let row = 0; row < board.value.length; row++) {
+    if (!board.value[row][colIndex].building) free++
+  }
+  return free
+}
+
+const computeAllowedColumns = (): number[] => {
+  if (!props.rows || props.rows.length === 0) return []
+
+  const allowed = new Set<number>()
+  const totalCols = board.value[0].length
+
+  for (const r of props.rows) {
+    let col = r - 1
+    if (col < 0 || col >= totalCols) continue
+
+    let freeHere = freeSlotsInColumn(col)
+    if (freeHere > 0) {
+      allowed.add(col + 1)
+      continue
+    }
+
+    let offset = 1
+    let bestFree = 0
+    let bestCols: number[] = []
+
+    while (col - offset >= 0 || col + offset < totalCols) {
+      const left = col - offset
+      const right = col + offset
+      let leftFree = left >= 0 ? freeSlotsInColumn(left) : 0
+      let rightFree = right < totalCols ? freeSlotsInColumn(right) : 0
+
+      const maxFree = Math.max(leftFree, rightFree)
+      if (maxFree > 0) {
+        if (maxFree > bestFree) {
+          bestFree = maxFree
+          bestCols = []
+        }
+        if (leftFree === maxFree && leftFree > 0) bestCols.push(left + 1)
+        if (rightFree === maxFree && rightFree > 0) bestCols.push(right + 1)
+        break
+      }
+
+      offset++
+    }
+
+    bestCols.forEach(c => allowed.add(c))
+  }
+
+  return Array.from(allowed)
+}
+
 </script>
 
 <template>
@@ -119,7 +210,7 @@ const isCellActive = (rowIndex: number, colIndex: number) => {
               class="w-16 h-16 border-2 rounded-md flex items-center justify-center text-sm transition-all duration-300 relative"
               :class="[
                 getBonusClass(cell.bonus),
-                isCellActive(i, j)
+                isCellVisuallyActive(i, j)
                   ? 'bg-white border-2 border-indigo-400 shadow-md cursor-pointer hover:bg-indigo-50'
                   : 'bg-slate-300 border border-slate-400 opacity-50 cursor-not-allowed',
               ]"
