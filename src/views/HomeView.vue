@@ -82,7 +82,6 @@ watch(
     } else if (val == 0) {
       if (currentRound.value > 0) {
         calculateScore()
-        console.log(123)
       }
     }
   },
@@ -155,7 +154,7 @@ const calculateScore = () => {
 
   handleLog(`You earned ${rowScore} points this round`)
 
-  if (currentRound.value === 10) {
+  if (currentRound.value === 9) {
     let squareBonus = 0
 
     for (let r = 0; r < board.length; r++) {

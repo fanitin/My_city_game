@@ -103,9 +103,12 @@ const placeBuilding = (rowIndex: number, colIndex: number) => {
   } else {
     rowToReturn = original ?? placedCol
   }
+  if(props.selectedBuilding == 'square'){
+    rowToReturn = 0
+  }
 
-  emit('boardUpdated', board.value)
-  emit('buildingPlaced', rowToReturn)
+    emit('boardUpdated', board.value)
+    emit('buildingPlaced', rowToReturn)
 }
 
 const isCellActive = (rowIndex: number, colIndex: number) => {
